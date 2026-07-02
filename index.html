@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>khalahamed</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 100px 0 50px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .contenedor {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      width: 530px;
+      max-width: 90vw;
+    }
+
+    .contenedor img {
+      width: 100%;
+      display: block;
+    }
+
+    nav {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    nav a, .contacto {
+      color: black;
+      text-decoration: none;
+      font-size: 17px;
+      letter-spacing: 4px;
+      text-transform: lowercase;
+      transition: opacity 0.2s;
+    }
+
+    nav a:hover, .contacto:hover { opacity: 0.35; }
+
+    .contacto {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="contenedor">
+    <img src="mea.png" alt="">
+    <nav>
+      <a href="https://soundcloud.com/20149173" target="_blank">soundcloud</a>
+      <a href="https://instagram.com/sos20149173" target="_blank">instagram</a>
+      <a href="mailito:keepgoing9173@gmail.com" class="contacto">contacto</a>
+    </nav>
+    <div class="tracks">
+  <div class="track" onclick="reproducir(this)" data-src="1.wav">
+    <span>track 1</span>
+    <span class="estado">▷</span>
+  </div>
+  <div class="track" onclick="reproducir(this)" data-src="2.wav">
+    <span>track 2</span>
+    <span class="estado">▷</span>
+  </div>
+  <div class="track" onclick="reproducir(this)" data-src="3.wav">
+    <span>track 3</span>
+    <span class="estado">▷</span>
+  </div>
+  <div class="track" onclick="reproducir(this)" data-src="4.wav">
+    <span>track 4</span>
+    <span class="estado">▷</span>
+  </div>
+  <div class="track" onclick="reproducir(this)" data-src="5.wav">
+    <span>track 5</span>
+    <span class="estado">▷</span>
+  </div>
+  <div class="track" onclick="reproducir(this)" data-src="6.wav">
+    <span>track 6</span>
+    <span class="estado">▷</span>
+  </div>
+</div>
+
+<audio id="player"></audio>
+
+<script>
+  const player = document.getElementById('player');
+
+  function reproducir(track) {
+    const src = track.dataset.src;
+    const estado = track.querySelector('.estado');
+
+    if (player.src.includes(src) && !player.paused) {
+      player.pause();
+      estado.textContent = '▷';
+    } else {
+      document.querySelectorAll('.estado').forEach(e => e.textContent = '▷');
+      player.src = src;
+      player.play();
+      estado.textContent = '◼';
+    }
+  }
+</script>
+  </div>
+<audio id="musica" src="." loop></audio>
+
+<script>
+  document.addEventListener('click', function() {
+    document.getElementById('musica').play();
+  }, { once: true });
+</script>
+</body>
+</div>
+</html>
