@@ -9,11 +9,47 @@
 
     body {
       background: #fff;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    #intro {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 1.5s ease;
+    }
+
+    #intro img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    #intro.visible {
+      opacity: 1;
+    }
+
+    #intro.saliendo {
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    #contenido {
+      opacity: 0;
+      transition: opacity 1s ease;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 100px 0 50px;
-      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+    }
+
+    #contenido.visible {
+      opacity: 1;
     }
 
     .contenedor {
@@ -52,72 +88,82 @@
       text-decoration: underline;
       text-underline-offset: 3px;
     }
+
+    #sorpresa {
+      position: fixed;
+      width: 400px;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
   </style>
 </head>
 <body>
 
-  <div class="contenedor">
-    <img src="mea.png" alt="">
-    <nav>
-      <a href="https://soundcloud.com/20149173" target="_blank">soundcloud</a>
-      <a href="https://instagram.com/khalahamedd" target="_blank">instagram</a>
-      <a href="mailito:keepgoing9173@gmail.com" class="contacto">contacto</a>
-    </nav>
-    <div class="tracks">
-  <div class="track" onclick="reproducir(this)" data-src="1.mp3">
-    <span>track 1</span>
-    <span class="estado">▷</span>
+  <div id="intro">
+    <img src="background.png" alt="">
   </div>
-  <div class="track" onclick="reproducir(this)" data-src="2.mp3">
-    <span>track 2</span>
-    <span class="estado">▷</span>
-  </div>
-  <div class="track" onclick="reproducir(this)" data-src="3.mp3">
-    <span>track 3</span>
-    <span class="estado">▷</span>
-  </div>
-  <div class="track" onclick="reproducir(this)" data-src="4.mp3">
-    <span>track 4</span>
-    <span class="estado">▷</span>
-  </div>
-  <div class="track" onclick="reproducir(this)" data-src="5.mp3">
-    <span>track 5</span>
-    <span class="estado">▷</span>
-  </div>
-  <div class="track" onclick="reproducir(this)" data-src="6.mp3">
-    <span>track 6</span>
-    <span class="estado">▷</span>
-  </div>
-</div>
 
-<audio id="player"></audio>
+  <div id="contenido">
+    <div class="contenedor">
+      <img src="mea.png" alt="">
+      <nav>
+        <a href="https://soundcloud.com/20149173" target="_blank">soundcloud</a>
+        <a href="https://instagram.com/khalahamedd" target="_blank">instagram</a>
+        <a href="mailto:keepgoing9173@gmail.com" class="contacto">contacto</a>
+      </nav>
+    </div>
+  </div>
 
-<script>
-  const player = document.getElementById('player');
+  <img id="sorpresa" src="egokid.png">
 
-  function reproducir(track) {
-    const src = track.dataset.src;
-    const estado = track.querySelector('.estado');
+  <audio id="musica" src="5.mp3" loop></audio>
 
-    if (player.src.includes(src) && !player.paused) {
-      player.pause();
-      estado.textContent = '▷';
-    } else {
-      document.querySelectorAll('.estado').forEach(e => e.textContent = '▷');
-      player.src = src;
-      player.play();
-      estado.textContent = '◼';
+  <script>
+    const intro = document.getElementById('intro');
+    const contenido = document.getElementById('contenido');
+    const musica = document.getElementById('musica');
+    const sorpresa = document.getElementById('sorpresa');
+
+    setTimeout(() => {
+      intro.classList.add('visible');
+    }, 100);
+
+    intro.addEventListener('click', () => {
+      musica.play();
+      intro.classList.add('saliendo');
+
+      setTimeout(() => {
+        intro.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        contenido.classList.add('visible');
+        iniciarSorpresa();
+      }, 1000);
+    });
+
+    function mostrarSorpresa() {
+      const maxX = window.innerWidth - 150;
+      const maxY = window.innerHeight - 150;
+      const randomX = Math.random() * maxX;
+      const randomY = Math.random() * maxY;
+
+      sorpresa.style.left = randomX + 'px';
+      sorpresa.style.top = randomY + 'px';
+      sorpresa.style.opacity = '1';
+
+      setTimeout(() => {
+        sorpresa.style.opacity = '0';
+      }, 1000);
+
+      const proximaVez = Math.random() * 6000 + 2000;
+      setTimeout(mostrarSorpresa, proximaVez);
     }
-  }
-</script>
-  </div>
-<audio id="musica" src="." loop></audio>
 
-<script>
-  document.addEventListener('click', function() {
-    document.getElementById('musica').play();
-  }, { once: true });
-</script>
+    function iniciarSorpresa() {
+      setTimeout(mostrarSorpresa, Math.random() * 4000 + 1000);
+    }
+  </script>
+
 </body>
-</div>
 </html>
