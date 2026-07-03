@@ -97,17 +97,31 @@
       pointer-events: none;
       transition: opacity 0.15s ease;
     }
+
+    @media (max-width: 768px) {
+      #intro {
+        background: #000;
+      }
+
+      #intro img {
+        object-fit: contain;
+      }
+
+      #sorpresa {
+        width: 200px;
+      }
+    }
   </style>
 </head>
 <body>
 
   <div id="intro">
-    <img src="background.png" alt="">
+    <img id="introImg" src="back1.png" alt="">
   </div>
 
   <div id="contenido">
     <div class="contenedor">
-      <img src="mea.png" alt="">
+      <img src="postback.png" alt="">
       <nav>
         <a href="https://soundcloud.com/20149173" target="_blank">soundcloud</a>
         <a href="https://instagram.com/khalahamedd" target="_blank">instagram</a>
@@ -122,15 +136,33 @@
 
   <script>
     const intro = document.getElementById('intro');
+    const introImg = document.getElementById('introImg');
     const contenido = document.getElementById('contenido');
     const musica = document.getElementById('musica');
     const sorpresa = document.getElementById('sorpresa');
 
+    const backs = [
+      'back1.png','back2.png','back3.png','back4.png',
+      'back5.png','back6.png','back7.png','back8.png'
+    ];
+
+    backs.forEach(src => { new Image().src = src; });
+
+    let bi = 0;
+    let intervaloBack = null;
+
     setTimeout(() => {
       intro.classList.add('visible');
+
+      intervaloBack = setInterval(() => {
+        bi = (bi + 1) % backs.length;
+        introImg.src = backs[bi];
+      }, 100);
+
     }, 100);
 
     intro.addEventListener('click', () => {
+      clearInterval(intervaloBack);
       musica.play();
       intro.classList.add('saliendo');
 
