@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-  <title>khalahamed</title>
-  <link rel="icon" type="image/png" href="webicon.png">
-  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>khalahamed</title>
+  <link rel="icon" type="image/png" href="webicon.png">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -33,14 +30,8 @@
       display: block;
     }
 
-    #intro.visible {
-      opacity: 1;
-    }
-
-    #intro.saliendo {
-      opacity: 0;
-      transition: opacity 1s ease;
-    }
+    #intro.visible { opacity: 1; }
+    #intro.saliendo { opacity: 0; transition: opacity 1s ease; }
 
     #contenido {
       opacity: 0;
@@ -48,40 +39,108 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 100px 0 50px;
+      justify-content: center;
       min-height: 100vh;
+      padding: 60px 0;
     }
 
-    #contenido.visible {
-      opacity: 1;
-    }
+    #contenido.visible { opacity: 1; }
 
-    .contenedor {
+    .carrusel-wrap {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 28px;
-      width: 530px;
-      max-width: 90vw;
+      gap: 40px;
+      width: 100%;
     }
 
-    .contenedor img {
+    .carrusel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       width: 100%;
+      position: relative;
+      height: 380px;
+    }
+
+    .card {
+      position: absolute;
+      cursor: pointer;
+      transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      transform-origin: center center;
+    }
+
+    .card img.foto {
       display: block;
+      object-fit: cover;
+      transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .btn-play {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+
+    /* solo la card central muestra el btn al hover */
+    .card.es-centro:hover .btn-play { opacity: 1; }
+
+    .btn-play svg {
+      width: 36px;
+      height: 36px;
+      fill: white;
+      filter: drop-shadow(0 0 4px rgba(0,0,0,0.6));
+    }
+
+    .flecha {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 10px;
+      animation: parpadeo 1.2s ease-in-out infinite;
+    }
+
+    .flecha svg {
+      width: 32px;
+      height: 32px;
+      fill: none;
+      stroke: #222;
+      stroke-width: 2;
+    }
+
+    .flecha-izq { left: 20px; }
+    .flecha-der { right: 20px; }
+
+    @keyframes parpadeo {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.15; }
     }
 
     nav {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: 20px;
     }
 
     nav a, .contacto {
       color: black;
       text-decoration: none;
-      font-size: 17px;
-      letter-spacing: 4px;
+      font-size: 22px;
+      letter-spacing: 8px;
       text-transform: lowercase;
       transition: opacity 0.2s;
     }
@@ -90,30 +149,16 @@
 
     .contacto {
       text-decoration: underline;
-      text-underline-offset: 3px;
-    }
-
-    #sorpresa {
-      position: fixed;
-      width: 400px;
-      z-index: 200;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.15s ease;
+      text-underline-offset: 4px;
     }
 
     @media (max-width: 768px) {
-      #intro {
-        background: #000;
-      }
+      #intro { background: #000; }
+      #intro img { object-fit: contain; }
 
-      #intro img {
-        object-fit: contain;
-      }
+      .carrusel { height: 280px; }
 
-      #sorpresa {
-        width: 200px;
-      }
+      nav a, .contacto { font-size: 16px; letter-spacing: 5px; }
     }
   </style>
 </head>
@@ -124,26 +169,176 @@
   </div>
 
   <div id="contenido">
-    <div class="contenedor">
-      <img src="postback.png" alt="">
+    <div class="carrusel-wrap">
+
+      <div class="carrusel" id="carrusel">
+        <button class="flecha flecha-izq" onclick="mover(-1)">
+          <svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg>
+        </button>
+        <button class="flecha flecha-der" onclick="mover(1)">
+          <svg viewBox="0 0 24 24"><polyline points="9,6 15,12 9,18"/></svg>
+        </button>
+      </div>
+
       <nav>
         <a href="https://soundcloud.com/20149173" target="_blank">soundcloud</a>
         <a href="https://instagram.com/khalahamedd" target="_blank">instagram</a>
         <a href="mailto:keepgoing9173@gmail.com" class="contacto">contacto</a>
       </nav>
+
     </div>
   </div>
 
-  <img id="sorpresa" src="egokid.png">
-
-  <audio id="musica" src="5.mp3" loop></audio>
+  <audio id="musica" src="x.mp3" loop></audio>
 
   <script>
-    const intro = document.getElementById('intro');
-    const introImg = document.getElementById('introImg');
+    const tracks = [
+      { img: 'icon red.png',  audio: 'brids.mp3'        },
+      { img: 'postback.png',  audio: '5.mp3'            },
+      { img: 'icongreen.png', audio: '3.mp3'            },
+      { img: 'postback.png',  audio: 'missingbeat1.mp3' },
+      { img: 'postback.png',  audio: 'missingbeat1.mp3' },
+      { img: 'postback.png',  audio: 'missingbeat1.mp3' },
+      { img: 'postback.png',  audio: 'missingbeat1.mp3' },
+      { img: 'postback.png',  audio: 'missingbeat1.mp3' },
+      { img: 'postback.png',  audio: 'missingbeat1.mp3' },
+      { img: 'postback.png',  audio: 'missingbeat1.mp3' },
+    ];
+
+    const play  = '<polygon points="5,3 19,12 5,21"/>';
+    const pause = '<rect x="5" y="3" width="4" height="18"/><rect x="15" y="3" width="4" height="18"/>';
+
+    const isMobile = window.innerWidth <= 768;
+
+    // tamaños y espaciados según pantalla
+    const SIZES   = isMobile ? [200, 130, 90]  : [320, 200, 140];
+    const GAPS    = isMobile ? [170, 130]       : [300, 220];
+    const DROPS   = isMobile ? [0, 25, 50]      : [0, 35, 65];
+
+    let current = 0;
+    let currentAudio = null;
+    let currentIcon  = null;
+    const carrusel = document.getElementById('carrusel');
+    const cards = [];
+    const audioEls = [];
+
+    tracks.forEach((t, i) => {
+      const audio = document.createElement('audio');
+      audio.src = t.audio;
+      document.body.appendChild(audio);
+      audioEls.push(audio);
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img class="foto" src="${t.img}" alt="">
+        <div class="btn-play">
+          <svg viewBox="0 0 24 24">${play}</svg>
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        if (getPos(i) !== 0) {
+          // click en lateral → navegar
+          const pos = getPos(i);
+          mover(pos > 0 ? 1 : -1);
+          return;
+        }
+
+        const audio = audioEls[i];
+        const icon  = card.querySelector('svg');
+
+        if (currentAudio && currentAudio !== audio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+          if (currentIcon) currentIcon.innerHTML = play;
+        }
+
+        if (audio.paused) {
+          audio.play();
+          icon.innerHTML = pause;
+        } else {
+          audio.pause();
+          icon.innerHTML = play;
+        }
+
+        audio.onended = () => { icon.innerHTML = play; };
+        currentAudio = audio;
+        currentIcon  = icon;
+      });
+
+      carrusel.appendChild(card);
+      cards.push(card);
+    });
+
+    function getPos(i) {
+      const total = tracks.length;
+      let pos = i - current;
+      if (pos > total / 2)  pos -= total;
+      if (pos < -total / 2) pos += total;
+      return pos;
+    }
+
+    function render() {
+      cards.forEach((card, i) => {
+        const pos  = getPos(i);
+        const abs  = Math.abs(pos);
+        const foto = card.querySelector('img.foto');
+
+        if (abs > 2) {
+          card.style.display = 'none';
+          card.classList.remove('es-centro');
+          return;
+        }
+
+        card.style.display = 'block';
+
+        const size    = SIZES[abs];
+        const opacity = abs === 0 ? 1 : abs === 1 ? 0.55 : 0.2;
+        const zIndex  = 10 - abs;
+        const offsetX = pos === 0 ? 0 : (pos > 0 ? 1 : -1) * (GAPS[0] + (abs === 2 ? GAPS[1] : 0));
+        const offsetY = DROPS[abs];
+
+        foto.style.width  = size + 'px';
+        foto.style.height = size + 'px';
+        card.style.opacity   = opacity;
+        card.style.zIndex    = zIndex;
+        card.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
+        card.style.left = '50%';
+        card.style.top  = '50%';
+
+        // solo central muestra hover play
+        if (abs === 0) {
+          card.classList.add('es-centro');
+        } else {
+          card.classList.remove('es-centro');
+        }
+
+        // desvanecido bordes
+        if (abs === 2) {
+          const dir = pos < 0
+            ? 'linear-gradient(to right, transparent, black)'
+            : 'linear-gradient(to left, transparent, black)';
+          foto.style.webkitMaskImage = dir;
+          foto.style.maskImage = dir;
+        } else {
+          foto.style.webkitMaskImage = 'none';
+          foto.style.maskImage = 'none';
+        }
+      });
+    }
+
+    function mover(dir) {
+      current = (current + dir + tracks.length) % tracks.length;
+      render();
+    }
+
+    render();
+
+    const intro     = document.getElementById('intro');
+    const introImg  = document.getElementById('introImg');
     const contenido = document.getElementById('contenido');
-    const musica = document.getElementById('musica');
-    const sorpresa = document.getElementById('sorpresa');
+    const musica    = document.getElementById('musica');
 
     const backs = [
       'back1.png','back2.png','back3.png','back4.png',
@@ -157,48 +352,22 @@
 
     setTimeout(() => {
       intro.classList.add('visible');
-
       intervaloBack = setInterval(() => {
         bi = (bi + 1) % backs.length;
         introImg.src = backs[bi];
       }, 100);
-
     }, 100);
 
     intro.addEventListener('click', () => {
       clearInterval(intervaloBack);
       musica.play();
       intro.classList.add('saliendo');
-
       setTimeout(() => {
         intro.style.display = 'none';
         document.body.style.overflow = 'auto';
         contenido.classList.add('visible');
-        iniciarSorpresa();
       }, 1000);
     });
-
-    function mostrarSorpresa() {
-      const maxX = window.innerWidth - 150;
-      const maxY = window.innerHeight - 150;
-      const randomX = Math.random() * maxX;
-      const randomY = Math.random() * maxY;
-
-      sorpresa.style.left = randomX + 'px';
-      sorpresa.style.top = randomY + 'px';
-      sorpresa.style.opacity = '1';
-
-      setTimeout(() => {
-        sorpresa.style.opacity = '0';
-      }, 1000);
-
-      const proximaVez = Math.random() * 6000 + 2000;
-      setTimeout(mostrarSorpresa, proximaVez);
-    }
-
-    function iniciarSorpresa() {
-      setTimeout(mostrarSorpresa, Math.random() * 4000 + 1000);
-    }
   </script>
 
 </body>
