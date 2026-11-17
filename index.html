@@ -65,7 +65,7 @@
       justify-content: center;
       width: 100%;
       position: relative;
-      height: 380px;
+      height: 940px;
     }
 
     .card {
@@ -133,8 +133,6 @@
 
     .flecha {
       position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
       z-index: 10;
       cursor: pointer;
       background: none;
@@ -144,9 +142,19 @@
       transition: transform 0.4s var(--ease);
     }
 
-    .flecha:hover { transform: translateY(-50%) scale(1.15); }
+    /* orientación horizontal: centrada en Y */
+    .flecha-izq, .flecha-der { top: 50%; }
+    .flecha-izq { left: 20px;  transform: translateY(-50%); }
+    .flecha-der { right: 20px; transform: translateY(-50%); }
+    .flecha-izq:hover, .flecha-der:hover   { transform: translateY(-50%) scale(1.15); }
+    .flecha-izq:active, .flecha-der:active { transform: translateY(-50%) scale(0.95); }
 
-    .flecha:active { transform: translateY(-50%) scale(0.95); }
+    /* orientación vertical: centrada en X */
+    .flecha-arr, .flecha-abj { left: 50%; }
+    .flecha-arr { top: 0;    transform: translateX(-50%); }
+    .flecha-abj { bottom: 0; transform: translateX(-50%); }
+    .flecha-arr:hover, .flecha-abj:hover   { transform: translateX(-50%) scale(1.15); }
+    .flecha-arr:active, .flecha-abj:active { transform: translateX(-50%) scale(0.95); }
 
     .flecha svg {
       width: 32px;
@@ -155,9 +163,6 @@
       stroke: #222;
       stroke-width: 2;
     }
-
-    .flecha-izq { left: 20px; }
-    .flecha-der { right: 20px; }
 
     @keyframes parpadeo {
       0%, 100% { opacity: 1; }
@@ -191,7 +196,7 @@
       #intro { background: #000; }
       #intro img { object-fit: contain; }
 
-      .carrusel { height: 280px; }
+      .carrusel { height: 640px; }
 
       nav a, .contacto { font-size: 16px; letter-spacing: 5px; }
     }
@@ -207,6 +212,12 @@
     <div class="carrusel-wrap">
 
       <div class="carrusel" id="carrusel">
+        <button class="flecha flecha-arr" onclick="moverV(-1)">
+          <svg viewBox="0 0 24 24"><polyline points="6,15 12,9 18,15"/></svg>
+        </button>
+        <button class="flecha flecha-abj" onclick="moverV(1)">
+          <svg viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9"/></svg>
+        </button>
         <button class="flecha flecha-izq" onclick="mover(-1)">
           <svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg>
         </button>
@@ -227,6 +238,28 @@
   <audio id="musica" src="x.mp3" loop></audio>
 
   <script>
+    /* ============================================================
+       SONIDOS DE LA INTERFAZ  (efectos de sonido)
+       Pon la ruta de tu archivo entre comillas. Si queda '' no suena.
+       ============================================================ */
+    const SONIDOS = {
+      play:           '',   // sonido de play aqui
+      stop:           '',   // sonido stop aqui
+      scrollVertical: '',   // scrool vertical aqui
+      cambiarCancion: '',   // cambiar cancion
+    };
+
+    function sonar(cual) {
+      const src = SONIDOS[cual];
+      if (!src) return;                 // vacío = no hace nada
+      const a = new Audio(src);
+      a.volume = 0.6;
+      a.play().catch(() => {});         // si falta el archivo, no rompe nada
+    }
+
+    /* ============================================================
+       EJE HORIZONTAL  (los temas que ya tenías)
+       ============================================================ */
     const tracks = [
       { img: 'graciaskhalahamed.jpg',  audio: 'mmm.mp3'        },
       { img: 'explo.jpg',  audio: 'avril14.mp3' },
@@ -239,6 +272,25 @@
       { img: 'two.jpg',  audio: 'goodtime.mp3' },
     ];
 
+    /* ============================================================
+       EJE VERTICAL  (copia del horizontal)
+       El audio lleva "VERTICAL " antes del nombre: reemplaza cada
+       archivo por el tuyo, ej: 'VERTICAL mmm.mp3'.
+       El img queda igual para que se vea bien mientras tanto;
+       cámbialo también si quieres portadas distintas.
+       ============================================================ */
+    const tracksVertical = [
+      { img: 'graciaskhalahamed.jpg',  audio: 'VERTICAL mmm.mp3'        },
+      { img: 'explo.jpg',  audio: 'VERTICAL avril14.mp3' },
+      { img: 'brazo.jpg',  audio: 'VERTICAL caos.mp3' },
+      { img: 'icongreen.png',  audio: 'VERTICAL 5.mp3' },
+      { img: 'charge.jpg',  audio: 'VERTICAL ope.mp3' },
+      { img: 'tacos.jpg',  audio: 'VERTICAL cunt.mp3' },
+      { img: 'piano.jpg',  audio: 'VERTICAL edward.mp3' },
+      { img: 'space.jpg',  audio: 'VERTICAL code.mp3' },
+      { img: 'two.jpg',  audio: 'VERTICAL goodtime.mp3' },
+    ];
+
     const play  = '<polygon points="5,3 19,12 5,21"/>';
     const pause = '<rect x="5" y="3" width="4" height="18"/><rect x="15" y="3" width="4" height="18"/>';
 
@@ -249,61 +301,80 @@
     const GAPS    = isMobile ? [170, 130]       : [300, 220];
     const DROPS   = isMobile ? [0, 25, 50]      : [0, 35, 65];
 
-    let current = 0;
+    // eje vertical: separación desde el centro hacia arriba/abajo
+    const VGAP    = isMobile ? 190 : 300;
+
+    let current = 0;      // posición del eje HORIZONTAL
+    let currentV = 0;     // posición del eje VERTICAL
+    let ejeActivo = 'h';  // qué eje ocupa el centro de la cruz: 'h' | 'v'
     let currentAudio = null;
     let currentIcon  = null;
     const carrusel = document.getElementById('carrusel');
-    const cards = [];
+    const cards = [];     // cards del eje horizontal
+    const cardsV = [];    // cards del eje vertical
     const audioEls = [];
+    const audioElsV = [];
 
-    tracks.forEach((t, i) => {
-      const audio = document.createElement('audio');
-      audio.src = t.audio;
-      document.body.appendChild(audio);
-      audioEls.push(audio);
+    // Crea las cards de un eje. eje = 'h' (horizontal) o 'v' (vertical)
+    function crearCards(lista, arrCards, arrAudio, getPosFn, moverFn, eje) {
+      lista.forEach((t, i) => {
+        const audio = document.createElement('audio');
+        audio.src = t.audio;
+        // los archivos VERTICAL aún no existen: no pedirlos hasta que se clicke
+        if (eje === 'v') audio.preload = 'none';
+        document.body.appendChild(audio);
+        arrAudio.push(audio);
 
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.innerHTML = `
-        <img class="foto" src="${t.img}" alt="">
-        <div class="btn-play">
-          <svg viewBox="0 0 24 24">${play}</svg>
-        </div>
-      `;
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <img class="foto" src="${t.img}" alt="">
+          <div class="btn-play">
+            <svg viewBox="0 0 24 24">${play}</svg>
+          </div>
+        `;
 
-      card.addEventListener('click', () => {
-        if (getPos(i) !== 0) {
-          // click en lateral → navegar
-          const pos = getPos(i);
-          mover(pos > 0 ? 1 : -1);
-          return;
-        }
+        card.addEventListener('click', () => {
+          const pos = getPosFn(i);
 
-        const audio = audioEls[i];
-        const icon  = card.querySelector('svg');
+          if (pos !== 0) {
+            // click en un lado → navegar por ese eje
+            moverFn(pos > 0 ? 1 : -1);
+            return;
+          }
 
-        if (currentAudio && currentAudio !== audio) {
-          currentAudio.pause();
-          currentAudio.currentTime = 0;
-          if (currentIcon) currentIcon.innerHTML = play;
-        }
+          // click en el centro → play / stop
+          const aud = arrAudio[i];
+          const icon = card.querySelector('svg');
 
-        if (audio.paused) {
-          audio.play();
-          icon.innerHTML = pause;
-        } else {
-          audio.pause();
-          icon.innerHTML = play;
-        }
+          if (currentAudio && currentAudio !== aud) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            if (currentIcon) currentIcon.innerHTML = play;
+          }
 
-        audio.onended = () => { icon.innerHTML = play; };
-        currentAudio = audio;
-        currentIcon  = icon;
+          if (aud.paused) {
+            aud.play().catch(() => {});
+            icon.innerHTML = pause;
+            sonar('play');
+          } else {
+            aud.pause();
+            icon.innerHTML = play;
+            sonar('stop');
+          }
+
+          aud.onended = () => { icon.innerHTML = play; };
+          currentAudio = aud;
+          currentIcon  = icon;
+        });
+
+        carrusel.appendChild(card);
+        arrCards.push(card);
       });
+    }
 
-      carrusel.appendChild(card);
-      cards.push(card);
-    });
+    crearCards(tracks,         cards,  audioEls,  getPos,  mover,  'h');
+    crearCards(tracksVertical, cardsV, audioElsV, getPosV, moverV, 'v');
 
     function getPos(i) {
       const total = tracks.length;
@@ -313,45 +384,83 @@
       return pos;
     }
 
+    function getPosV(i) {
+      const total = tracksVertical.length;
+      let pos = i - currentV;
+      if (pos > total / 2)  pos -= total;
+      if (pos < -total / 2) pos += total;
+      return pos;
+    }
+
+    // aplica tamaño/opacidad/posición a una card
+    function pintar(card, size, opacity, zIndex, x, y, oculta) {
+      const foto = card.querySelector('img.foto');
+      foto.style.width  = size + 'px';
+      foto.style.height = size + 'px';
+      card.style.opacity      = opacity;
+      card.style.zIndex       = zIndex;
+      card.style.pointerEvents = oculta ? 'none' : 'auto';
+      card.style.left = '50%';
+      card.style.top  = '50%';
+      card.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+    }
+
     function render() {
+      /* ---------- EJE HORIZONTAL (izq / der) ---------- */
       cards.forEach((card, i) => {
-        const pos  = getPos(i);
-        const abs  = Math.abs(pos);
-        const foto = card.querySelector('img.foto');
+        const pos = getPos(i);
+        const abs = Math.abs(pos);
+        const esCentro = pos === 0;
+        const oculta = esCentro ? ejeActivo !== 'h' : abs > 2;
 
         const size    = SIZES[Math.min(abs, SIZES.length - 1)];
-        const opacity = abs === 0 ? 1 : abs === 1 ? 0.55 : abs === 2 ? 0.2 : 0;
-        const zIndex  = 10 - abs;
+        const opacity = oculta ? 0 : (abs === 0 ? 1 : abs === 1 ? 0.55 : 0.2);
+        const zIndex  = esCentro && ejeActivo === 'h' ? 20 : 10 - abs;
 
-        // se van empujando hacia afuera en vez de desaparecer de golpe
-        const offsetX = pos === 0
+        const x = pos === 0
           ? 0
           : (pos > 0 ? 1 : -1) * (GAPS[0] + Math.max(0, abs - 1) * GAPS[1]);
+        const y = DROPS[Math.min(abs, DROPS.length - 1)];
 
-        const offsetY = DROPS[Math.min(abs, DROPS.length - 1)];
+        pintar(card, size, opacity, zIndex, x, y, oculta);
 
-        const oculta = abs > 2;
-
-        foto.style.width  = size + 'px';
-        foto.style.height = size + 'px';
-        card.style.opacity   = opacity;
-        card.style.zIndex    = zIndex;
-        card.style.pointerEvents = oculta ? 'none' : 'auto';
-        card.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
-        card.style.left = '50%';
-        card.style.top  = '50%';
-
-        // solo central muestra hover play
-        card.classList.toggle('es-centro', abs === 0);
-
-        // desvanecido de bordes via overlay (antes mask-image, que saltaba)
+        card.classList.toggle('es-centro', esCentro && ejeActivo === 'h');
         card.classList.toggle('es-izq', pos < 0 && abs === 2);
         card.classList.toggle('es-der', pos > 0 && abs === 2);
+      });
+
+      /* ---------- EJE VERTICAL (arr / abj) ---------- */
+      cardsV.forEach((card, i) => {
+        const pos = getPosV(i);
+        const abs = Math.abs(pos);
+        const esCentro = pos === 0;
+        const oculta = esCentro ? ejeActivo !== 'v' : abs > 1;
+
+        const size    = SIZES[Math.min(abs, SIZES.length - 1)];
+        const opacity = oculta ? 0 : (abs === 0 ? 1 : 0.55);
+        const zIndex  = esCentro && ejeActivo === 'v' ? 20 : 9 - abs;
+
+        const x = 0;
+        const y = pos * VGAP;
+
+        pintar(card, size, opacity, zIndex, x, y, oculta);
+
+        card.classList.toggle('es-centro', esCentro && ejeActivo === 'v');
+        card.classList.remove('es-izq', 'es-der');
       });
     }
 
     function mover(dir) {
       current = (current + dir + tracks.length) % tracks.length;
+      ejeActivo = 'h';
+      sonar('cambiarCancion');
+      render();
+    }
+
+    function moverV(dir) {
+      currentV = (currentV + dir + tracksVertical.length) % tracksVertical.length;
+      ejeActivo = 'v';
+      sonar('scrollVertical');
       render();
     }
 
