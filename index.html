@@ -8,6 +8,11 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    :root {
+      --dur: 0.75s;
+      --ease: cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
     body {
       background: #fff;
       font-family: 'Courier New', monospace;
@@ -66,14 +71,38 @@
     .card {
       position: absolute;
       cursor: pointer;
-      transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
       transform-origin: center center;
+      will-change: transform, opacity;
     }
 
     .card img.foto {
       display: block;
       object-fit: cover;
-      transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      transition: width var(--dur) var(--ease), height var(--dur) var(--ease);
+      will-change: width, height;
+    }
+
+    /* desvanecido de bordes con overlay: transiciona de verdad,
+       a diferencia de mask-image que saltaba de golpe */
+    .card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity var(--dur) var(--ease);
+    }
+
+    .card.es-izq::after {
+      opacity: 1;
+      background: linear-gradient(to left, transparent, #fff);
+    }
+
+    .card.es-der::after {
+      opacity: 1;
+      background: linear-gradient(to right, transparent, #fff);
     }
 
     .btn-play {
@@ -87,8 +116,9 @@
       align-items: center;
       justify-content: center;
       opacity: 0;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.35s var(--ease);
       pointer-events: none;
+      z-index: 2;
     }
 
     /* solo la card central muestra el btn al hover */
@@ -110,8 +140,13 @@
       background: none;
       border: none;
       padding: 10px;
-      animation: parpadeo 1.2s ease-in-out infinite;
+      animation: parpadeo 3s ease-in-out infinite;
+      transition: transform 0.4s var(--ease);
     }
+
+    .flecha:hover { transform: translateY(-50%) scale(1.15); }
+
+    .flecha:active { transform: translateY(-50%) scale(0.95); }
 
     .flecha svg {
       width: 32px;
@@ -126,7 +161,7 @@
 
     @keyframes parpadeo {
       0%, 100% { opacity: 1; }
-      50%       { opacity: 0.15; }
+      50%       { opacity: 0.45; }
     }
 
     nav {
@@ -142,10 +177,10 @@
       font-size: 22px;
       letter-spacing: 8px;
       text-transform: lowercase;
-      transition: opacity 0.2s;
+      transition: opacity 0.4s var(--ease), letter-spacing 0.4s var(--ease);
     }
 
-    nav a:hover, .contacto:hover { opacity: 0.35; }
+    nav a:hover, .contacto:hover { opacity: 0.35; letter-spacing: 10px; }
 
     .contacto {
       text-decoration: underline;
@@ -284,46 +319,34 @@
         const abs  = Math.abs(pos);
         const foto = card.querySelector('img.foto');
 
-        if (abs > 2) {
-          card.style.display = 'none';
-          card.classList.remove('es-centro');
-          return;
-        }
-
-        card.style.display = 'block';
-
-        const size    = SIZES[abs];
-        const opacity = abs === 0 ? 1 : abs === 1 ? 0.55 : 0.2;
+        const size    = SIZES[Math.min(abs, SIZES.length - 1)];
+        const opacity = abs === 0 ? 1 : abs === 1 ? 0.55 : abs === 2 ? 0.2 : 0;
         const zIndex  = 10 - abs;
-        const offsetX = pos === 0 ? 0 : (pos > 0 ? 1 : -1) * (GAPS[0] + (abs === 2 ? GAPS[1] : 0));
-        const offsetY = DROPS[abs];
+
+        // se van empujando hacia afuera en vez de desaparecer de golpe
+        const offsetX = pos === 0
+          ? 0
+          : (pos > 0 ? 1 : -1) * (GAPS[0] + Math.max(0, abs - 1) * GAPS[1]);
+
+        const offsetY = DROPS[Math.min(abs, DROPS.length - 1)];
+
+        const oculta = abs > 2;
 
         foto.style.width  = size + 'px';
         foto.style.height = size + 'px';
         card.style.opacity   = opacity;
         card.style.zIndex    = zIndex;
+        card.style.pointerEvents = oculta ? 'none' : 'auto';
         card.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
         card.style.left = '50%';
         card.style.top  = '50%';
 
         // solo central muestra hover play
-        if (abs === 0) {
-          card.classList.add('es-centro');
-        } else {
-          card.classList.remove('es-centro');
-        }
+        card.classList.toggle('es-centro', abs === 0);
 
-        // desvanecido bordes
-        if (abs === 2) {
-          const dir = pos < 0
-            ? 'linear-gradient(to right, transparent, black)'
-            : 'linear-gradient(to left, transparent, black)';
-          foto.style.webkitMaskImage = dir;
-          foto.style.maskImage = dir;
-        } else {
-          foto.style.webkitMaskImage = 'none';
-          foto.style.maskImage = 'none';
-        }
+        // desvanecido de bordes via overlay (antes mask-image, que saltaba)
+        card.classList.toggle('es-izq', pos < 0 && abs === 2);
+        card.classList.toggle('es-der', pos > 0 && abs === 2);
       });
     }
 
